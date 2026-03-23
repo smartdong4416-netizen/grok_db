@@ -49,8 +49,8 @@ async function loadNotes() {
 
         note.classList.add("note");
         note.id = data.input_title;
-        //note.textContent = data.input_title + '\n' + data.input_category + '\n' + data.input_summary;
-        note.innerHTML = "標題 : "+data.input_title + '<br>' +"類別 : "+ data.input_category + '<br>' +"摘要 : "+ data.input_summary;
+        note.textContent = "標題 : "+data.input_title +'\n'+"類別 : "+ data.input_category +'\n'+"摘要 : "+ data.input_summary;
+        //note.innerHTML = "標題 : "+data.input_title + '<br>' +"類別 : "+ data.input_category + '<br>' +"摘要 : "+ data.input_summary;
 
         note_list.appendChild(note);
 

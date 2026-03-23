@@ -33,4 +33,6 @@ button {
   border-radius: 16px;
   background: #fff;
   cursor: pointer;
+
+  white-space: pre-line;
 }
