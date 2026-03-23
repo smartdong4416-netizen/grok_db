@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, updateDoc, serverTimestamp} 
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, updateDoc, serverTimestamp,deleteDoc} 
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -41,19 +41,14 @@ add_note_btn.addEventListener("click",
         createdAt: serverTimestamp()
     });
 
-
     document.getElementById("input_title").value = "";
     document.getElementById("input_category").value = "";
     document.getElementById("input_summary").value = "";
-
-
-
 }
 )
 
 
-// 詳細資料
-
+// 詳細資料 把選到的 note 資料填入
 function openDetailPanel(id, data) {
     const panel = document.getElementById("detail_panel");
 
