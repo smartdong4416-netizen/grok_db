@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, updateDoc, serverTimestamp,deleteDoc} 
+import { getFirestore, collection, addDoc, query, orderBy, doc, updateDoc, serverTimestamp,deleteDoc} 
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -17,7 +17,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// 清空輸入欄位
+const clear_btn = document.getElementById("clear_btn");
 
+clear_btn.addEventListener("click",()=>{
+    document.getElementById("input_title").value = "";
+    document.getElementById("input_category").value = "";
+    document.getElementById("input_summary").value = "";
+}
+)
 
 // 新增資料
 const add_note_btn = document.getElementById("add_note_btn");
@@ -113,5 +121,3 @@ onSnapshot(q, (snapshot) => {
         note_list.appendChild(note);
     });
 });
-
-
