@@ -18,7 +18,12 @@ const db = getFirestore(app);
 
 
 // 新增資料
-window.addNote = async function () {
+
+const add_note_btn = document.getElementById("add_note_btn");
+
+add_note_btn.addEventListener("click",
+
+    async function () {
     const input_title = document.getElementById("input_title").value;
     const input_category = document.getElementById("input_category").value;
     const input_summary = document.getElementById("input_summary").value;
@@ -30,9 +35,15 @@ window.addNote = async function () {
       createdAt: new Date()
     });
 
+
+
     alert("儲存完成！");
     loadNotes();
-};
+}
+)
+
+
+
 
 
 
