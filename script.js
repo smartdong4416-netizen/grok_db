@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy } 
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, updateDoc, serverTimestamp} 
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 
 // 資料庫設定
@@ -37,49 +38,85 @@ add_note_btn.addEventListener("click",
         title,
         category,
         summary,
-        createdAt: new Date()
+        createdAt: serverTimestamp()
     });
 
-    alert("儲存完成！");
-
-
-
-    loadNotes();
 
     document.getElementById("input_title").value = "";
     document.getElementById("input_category").value = "";
     document.getElementById("input_summary").value = "";
+
+
+
 }
 )
 
 
+// 詳細資料
 
-// 讀取資料
-async function loadNotes() {
-    //const querySnapshot = await getDocs(collection(db, "notes"),orderBy("createdAt"));
+function openDetailPanel(id, data) {
+    const panel = document.getElementById("detail_panel");
 
-    const q = query(collection(db, "notes"), orderBy("createdAt"));
-    const querySnapshot = await getDocs(q);
+    panel.classList.add("open");
 
-    const note_list = document.getElementById("note_list");
-    note_list.innerHTML = "";
+    // 填資料
+    document.getElementById("detail_title").value = data.title;
+    document.getElementById("detail_category").value = data.category;
+    document.getElementById("detail_summary").value = data.summary;
 
-    querySnapshot.forEach(doc => {
-        const data = doc.data();
-
-        const note = document.createElement("div");
-
-        note.classList.add("note");
-        //note.id = data.input_title;
-        note.dataset.id = doc.id;
-        note.textContent = "標題 : "+data.title +'\n'+"類別 : "+ data.category +'\n'+"摘要 : "+ data.summary;
-        //note.innerHTML = "標題 : "+data.input_title + '<br>' +"類別 : "+ data.input_category + '<br>' +"摘要 : "+ data.input_summary;
-
-        note_list.appendChild(note);
-
-    });
+    // 存目前選到的 doc id（之後更新用）
+    panel.dataset.id = id;
 }
 
-loadNotes();
+document.getElementById("close_btn").addEventListener("click", () => {
+    document.getElementById("detail_panel").classList.remove("open"); // 移除 open 類 所以會收回去
+});
+
+document.getElementById("save_btn").addEventListener("click", async () => {
+    const panel = document.getElementById("detail_panel");
+    const id = panel.dataset.id;
+
+    const newTitle = document.getElementById("detail_title").value;
+    const newCategory = document.getElementById("detail_category").value;
+    const newSummary = document.getElementById("detail_summary").value;
+
+    await updateDoc(doc(db, "notes", id), {
+        title: newTitle,
+        category: newCategory,
+        summary: newSummary
+    });
+
+    panel.classList.remove("open");
+
+});
+
+
+// onsnapshot
+const note_list = document.getElementById("note_list");
+
+const q = query(collection(db, "notes"), orderBy("createdAt"));
+
+onSnapshot(q, (snapshot) => {
+    note_list.innerHTML = "";
+
+    snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+
+        const note = document.createElement("div");
+        note.classList.add("note");
+        note.dataset.id = docSnap.id;
+
+        note.textContent =
+          "標題 : " + data.title + '\n' +
+          "類別 : " + data.category + '\n' +
+          "摘要 : " + data.summary;
+
+        note.addEventListener("click", () => {
+            openDetailPanel(docSnap.id, data);
+        });
+
+        note_list.appendChild(note);
+    });
+});
 
 

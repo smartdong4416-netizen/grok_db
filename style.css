@@ -15,7 +15,7 @@ input {
 button {
   background: linear-gradient(135deg, #6a11cb, #2575fc);
   color: white;
-  padding: 12px 24px;
+  padding: 10px 20px;
   border: none;
   border-radius: 25px;
   font-size: 20px;
@@ -35,4 +35,28 @@ button {
   cursor: pointer;
 
   white-space: pre-line;
+}
+
+
+/* 詳細聊天紀錄 */
+.panel {
+  position: fixed;
+  top: 0;
+  right: -500px; /* 預設藏起來 */
+  width: 400px;
+  height: 100%;
+  background: #fff;
+  box-shadow: -5px 0 20px rgba(0,0,0,0.1);
+  padding: 20px;
+  transition: right 0.3s ease;
+  z-index: 1000;
+}
+
+.panel.open { /* 有 open類的 panel */
+  right: 0; /* 滑出來 */
+}
+
+textarea {
+  width: 100%;
+  height: 120px;
 }
