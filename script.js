@@ -11,7 +11,7 @@ import {
   deleteDoc,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+ 
 import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 
@@ -31,28 +31,35 @@ const db = getFirestore(app);
 getDocs(collection(db, "notes")); // 預熱用 讓第一次連線不用等太久
 
 // 清空輸入欄位
-document.getElementById("clear_btn").addEventListener("click", () => {
+function clearInput(){
     document.getElementById("input_title").value = "";
     document.getElementById("input_category").value = "";
     document.getElementById("input_summary").value = "";
+}
+
+// 清空輸入按鈕
+document.getElementById("clear_btn").addEventListener("click", () => {
+    clearInput()
 });
 
 
-// 新增資料
+// 新增聊天資料
 document.getElementById("add_note_btn").addEventListener("click", async () => {
 
     if (add_note_btn.disabled) return; // 防連點
-    add_note_btn.disabled = true;
+    add_note_btn.disabled = true; // 上鎖
 
-    const title = document.getElementById("input_title").value.trim();
+    const title = document.getElementById("input_title").value.trim(); // trim() 會只留內容
     const category = document.getElementById("input_category").value.trim();
     const summary = document.getElementById("input_summary").value.trim();
 
     if (!title || !category || !summary) {
         alert("請輸入完整資料");
-        add_note_btn.disabled = false;
+        add_note_btn.disabled = false; // 解鎖
         return;
     }
+
+    clearInput()
 
     try {
         await addDoc(collection(db, "notes"), {
@@ -62,19 +69,13 @@ document.getElementById("add_note_btn").addEventListener("click", async () => {
             createdAt: serverTimestamp() // 比較準的時間
         });
 
-        // 清空
-        document.getElementById("input_title").value = "";
-        document.getElementById("input_category").value = "";
-        document.getElementById("input_summary").value = "";
-
     } catch (error) {
         console.error("新增失敗:", error);
         alert("新增失敗，請看 console");
     }
 
-    add_note_btn.disabled = false; // ⭐ 解鎖
+    add_note_btn.disabled = false; // 解鎖
 });
-
 
 
 // 詳細面板
@@ -93,7 +94,7 @@ function openDetailPanel(id, data) { // 提供頁面格式 載入資料進來
     document.getElementById("detail_category").value = data.category || "";
     document.getElementById("detail_summary").value = data.summary || "";
 
-    panel.dataset.id = id;
+    panel.dataset.id = id; // 把對應的 id 導入
 
     // 先取消舊監聽
     if (unsubscribeChat) unsubscribeChat();
@@ -101,11 +102,13 @@ function openDetailPanel(id, data) { // 提供頁面格式 載入資料進來
     const chat_list = document.getElementById("chat_list");
     chat_list.innerHTML = "";
 
+    // 照創建時間排序
     const chatQuery = query(
         collection(db, "notes", id, "chats"),
         orderBy("createdAt")
-    );
+    ); 
 
+    // 載入每條聊天訊息
     unsubscribeChat = onSnapshot(chatQuery, (snapshot) => {
         chat_list.innerHTML = "";
 
@@ -113,7 +116,7 @@ function openDetailPanel(id, data) { // 提供頁面格式 載入資料進來
             const chat = docSnap.data();
 
             const msg = document.createElement("div");
-            msg.classList.add("chat-message");
+            msg.classList.add("chat-message"); // 加 chat-message 類別
             msg.textContent = chat.text;
 
             chat_list.appendChild(msg);
@@ -127,19 +130,20 @@ function openDetailPanel(id, data) { // 提供頁面格式 載入資料進來
 document.getElementById("send_chat_btn").addEventListener("click", async () => {
 
     if (send_chat_btn.disabled) return; // 防連點
-    send_chat_btn.disabled = true;
+    send_chat_btn.disabled = true; // 上鎖
 
     const panel = document.getElementById("detail_panel");
-    const noteId = panel.dataset.id;
+    const noteId = panel.dataset.id; // 點到的那個 note 的 id
 
     const input = document.getElementById("chat_input");
     const text = input.value.trim();
 
     if (!text) {
-        send_chat_btn.disabled = false;
+        send_chat_btn.disabled = false; // 解鎖
         return;
     }
 
+    input.value = "";
 
     try {
         await addDoc(collection(db, "notes", noteId, "chats"), {
@@ -147,20 +151,17 @@ document.getElementById("send_chat_btn").addEventListener("click", async () => {
             createdAt: serverTimestamp()
         });
 
-        input.value = "";
-
     } catch (error) {
         console.error("聊天新增失敗:", error);
     }
 
-    send_chat_btn.disabled = false;
+    send_chat_btn.disabled = false; // 解鎖
 });
 
-// 再輸入時 按 enter 可以送出
-document.getElementById("chat_input")
-  .addEventListener("keydown", (e) => {
+// 再輸入時按 enter 可以送出
+document.getElementById("chat_input").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
-      document.getElementById("send_chat_btn").click();
+      document.getElementById("send_chat_btn").click(); // 執行點擊送出訊息
     }
 });
 
@@ -183,8 +184,6 @@ document.getElementById("save_btn").addEventListener("click", async () => {
         return;
     }
 
-
-
     try {
         await updateDoc(doc(db, "notes", id), {
             title: newTitle,
@@ -192,7 +191,7 @@ document.getElementById("save_btn").addEventListener("click", async () => {
             summary: newSummary
         });
 
-        panel.classList.remove("open");
+        panel.classList.remove("open"); // 收回 detail panel
         document.getElementById("overlay").classList.remove("open");
 
     } catch (error) {
@@ -225,18 +224,8 @@ onSnapshot(
             note.classList.add("note");
             note.dataset.id = docSnap.id;
 
-            // 刪除按鈕
-            /*
-            const deleteBtn = document.createElement("button");
-            deleteBtn.textContent = "🗑️";
-            deleteBtn.style.position = "absolute";
-            deleteBtn.style.top = "10px";
-            deleteBtn.style.right = "10px";
-            deleteBtn.style.fontSize = "14px";
-            deleteBtn.style.padding = "5px 8px";
-            deleteBtn.style.borderRadius = "50%";
-            */
-            const deleteBtn = document.createElement("button");
+
+            const deleteBtn = document.createElement("button"); // 刪除按鈕
             deleteBtn.classList.add("delete-btn");
             deleteBtn.textContent = "✕";
 
@@ -249,7 +238,7 @@ onSnapshot(
                 if (!confirmDelete) return;
 
                 try {
-                    
+                    /*
                     const chatsRef = collection(db, "notes", docSnap.id, "chats");
                     const chatSnapshot = await getDocs(chatsRef);
 
@@ -257,13 +246,21 @@ onSnapshot(
                         await deleteDoc(chatDoc.ref);
                     });
                     await deleteDoc(doc(db, "notes", docSnap.id));
+                    */
+                   const chatsRef = collection(db, "notes", docSnap.id, "chats"); // 先刪掉每條聊天內容
+                   const chatSnapshot = await getDocs(chatsRef);
+
+                    await Promise.all(
+                        chatSnapshot.docs.map(chatDoc => deleteDoc(chatDoc.ref))
+                    );
+
+                    await deleteDoc(doc(db, "notes", docSnap.id)); // 再刪掉整個 note
                     
                 } catch (error) {
                     console.error("刪除失敗:", error);
                     alert("刪除失敗");
                 }
             });
-
 
             // 內容
             const content = document.createElement("div");
@@ -272,12 +269,10 @@ onSnapshot(
                 "類別 : " + (data.category || "") + '\n' +
                 "摘要 : " + (data.summary || "");
 
-            // 卡片設定 relative（讓按鈕定位）
-            //note.style.position = "relative";
 
             // 點擊卡片（開編輯）
             note.addEventListener("click", () => {
-                openDetailPanel(docSnap.id, docSnap.data());
+                openDetailPanel(docSnap.id, docSnap.data()); // 載入點到的這張卡的資訊進 detail panel
             });
 
             // 組裝
@@ -295,12 +290,12 @@ onSnapshot(
 
 
 document.getElementById("overlay").addEventListener("click", (e) => {
-    const panel = document.getElementById("detail_panel");
+    //const panel = document.getElementById("detail_panel");
 
-    // 如果點到的是 panel 本身 → 不關
+    // 如果點到的是 panel 本身就不關
     if (e.target.closest("#detail_panel")) return;
 
-    // 點到外面 → 關閉
+    // 點到外面才關閉
     closePanel();
 });
 
@@ -309,5 +304,9 @@ function closePanel() {
     document.getElementById("overlay").classList.remove("open");
     document.getElementById("detail_panel").classList.remove("open");
 
-    if (unsubscribeChat) unsubscribeChat();
+    if (unsubscribeChat) {
+        unsubscribeChat();
+        unsubscribeChat = null;
+    }
 }
+
