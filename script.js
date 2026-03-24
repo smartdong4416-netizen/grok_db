@@ -112,12 +112,38 @@ function openDetailPanel(id, data) { // 提供頁面格式 載入資料進來
     unsubscribeChat = onSnapshot(chatQuery, (snapshot) => {
         chat_list.innerHTML = "";
 
+        /*
         snapshot.forEach(docSnap => {
             const chat = docSnap.data();
 
             const msg = document.createElement("div");
             msg.classList.add("chat-message"); // 加 chat-message 類別
             msg.textContent = chat.text;
+
+            chat_list.appendChild(msg);
+        });
+        */
+        snapshot.forEach(docSnap => {
+            const chat = docSnap.data();
+
+            const msg = document.createElement("div");
+            msg.classList.add("chat-message");
+            msg.textContent = chat.text;
+
+            // ⭐ 右鍵事件
+            msg.addEventListener("contextmenu", async (e) => {
+                    e.preventDefault(); // 阻止預設右鍵選單
+
+                    const confirmDelete = confirm("要刪除這則訊息嗎？");
+                    if (!confirmDelete) return;
+
+                    try {
+                        await deleteDoc(docSnap.ref);
+                    } catch (error) {
+                        console.error("刪除聊天失敗:", error);
+                        alert("刪除失敗");
+                }
+            });
 
             chat_list.appendChild(msg);
         });
