@@ -39,12 +39,17 @@ document.getElementById("clear_btn").addEventListener("click", () => {
 
 // 新增資料
 document.getElementById("add_note_btn").addEventListener("click", async () => {
+
+    if (add_note_btn.disabled) return; // 防連點
+    add_note_btn.disabled = true;
+
     const title = document.getElementById("input_title").value.trim();
     const category = document.getElementById("input_category").value.trim();
     const summary = document.getElementById("input_summary").value.trim();
 
     if (!title || !category || !summary) {
         alert("請輸入完整資料");
+        add_note_btn.disabled = false;
         return;
     }
 
@@ -65,6 +70,8 @@ document.getElementById("add_note_btn").addEventListener("click", async () => {
         console.error("新增失敗:", error);
         alert("新增失敗，請看 console");
     }
+
+    add_note_btn.disabled = false; // ⭐ 解鎖
 });
 
 
@@ -112,13 +119,21 @@ function openDetailPanel(id, data) { // 提供頁面格式 載入資料進來
 }
 
 document.getElementById("send_chat_btn").addEventListener("click", async () => {
+
+    if (send_chat_btn.disabled) return; // 防連點
+    send_chat_btn.disabled = true;
+
     const panel = document.getElementById("detail_panel");
     const noteId = panel.dataset.id;
 
     const input = document.getElementById("chat_input");
     const text = input.value.trim();
 
-    if (!text) return;
+    if (!text) {
+        send_chat_btn.disabled = false;
+        return;
+    }
+
 
     try {
         await addDoc(collection(db, "notes", noteId, "chats"), {
@@ -131,6 +146,8 @@ document.getElementById("send_chat_btn").addEventListener("click", async () => {
     } catch (error) {
         console.error("聊天新增失敗:", error);
     }
+
+    send_chat_btn.disabled = false;
 });
 
 // 再輸入時 按 enter 可以送出
