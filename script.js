@@ -8,7 +8,8 @@ import {
   doc, 
   updateDoc, 
   serverTimestamp,
-  deleteDoc 
+  deleteDoc,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -27,7 +28,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-
+getDocs(collection(db, "notes")); // 預熱用 讓第一次連線不用等太久
 
 // 清空輸入欄位
 document.getElementById("clear_btn").addEventListener("click", () => {
@@ -80,6 +81,11 @@ document.getElementById("add_note_btn").addEventListener("click", async () => {
 let unsubscribeChat = null;
 
 function openDetailPanel(id, data) { // 提供頁面格式 載入資料進來
+
+    const overlay = document.getElementById("overlay");
+    overlay.classList.add("open");
+
+
     const panel = document.getElementById("detail_panel");
     panel.classList.add("open"); // 加入 open 類別 才會彈出來
 
@@ -160,9 +166,7 @@ document.getElementById("chat_input")
 
 // 關閉
 document.getElementById("close_btn").addEventListener("click", () => {
-    document.getElementById("detail_panel").classList.remove("open");
-
-    if (unsubscribeChat) unsubscribeChat();
+    closePanel();
 });
 
 // 儲存修改
@@ -179,6 +183,8 @@ document.getElementById("save_btn").addEventListener("click", async () => {
         return;
     }
 
+
+
     try {
         await updateDoc(doc(db, "notes", id), {
             title: newTitle,
@@ -187,6 +193,7 @@ document.getElementById("save_btn").addEventListener("click", async () => {
         });
 
         panel.classList.remove("open");
+        document.getElementById("overlay").classList.remove("open");
 
     } catch (error) {
         console.error("更新失敗:", error);
@@ -242,6 +249,13 @@ onSnapshot(
                 if (!confirmDelete) return;
 
                 try {
+                    
+                    const chatsRef = collection(db, "notes", docSnap.id, "chats");
+                    const chatSnapshot = await getDocs(chatsRef);
+
+                    chatSnapshot.forEach(async (chatDoc) => {
+                        await deleteDoc(chatDoc.ref);
+                    });
                     await deleteDoc(doc(db, "notes", docSnap.id));
                     
                 } catch (error) {
@@ -278,3 +292,22 @@ onSnapshot(
         alert("資料讀取失敗，請查看 console");
     }
 );
+
+
+document.getElementById("overlay").addEventListener("click", (e) => {
+    const panel = document.getElementById("detail_panel");
+
+    // 如果點到的是 panel 本身 → 不關
+    if (e.target.closest("#detail_panel")) return;
+
+    // 點到外面 → 關閉
+    closePanel();
+});
+
+
+function closePanel() {
+    document.getElementById("overlay").classList.remove("open");
+    document.getElementById("detail_panel").classList.remove("open");
+
+    if (unsubscribeChat) unsubscribeChat();
+}
