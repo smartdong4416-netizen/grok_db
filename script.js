@@ -14,7 +14,7 @@ import {
 import { onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 
-// 🔥 Firebase 設定
+// Firebase 設定
 const firebaseConfig = {
     apiKey: "AIzaSyBwKqGwiie4GmEQpre2jtCTMZZxX6V--nM",
     authDomain: "grok-db.firebaseapp.com",
@@ -28,9 +28,8 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 
-// ============================
-// 🧹 清空輸入欄位
-// ============================
+
+// 清空輸入欄位
 document.getElementById("clear_btn").addEventListener("click", () => {
     document.getElementById("input_title").value = "";
     document.getElementById("input_category").value = "";
@@ -38,9 +37,7 @@ document.getElementById("clear_btn").addEventListener("click", () => {
 });
 
 
-// ============================
-// ➕ 新增資料
-// ============================
+// 新增資料
 document.getElementById("add_note_btn").addEventListener("click", async () => {
     const title = document.getElementById("input_title").value.trim();
     const category = document.getElementById("input_category").value.trim();
@@ -56,7 +53,7 @@ document.getElementById("add_note_btn").addEventListener("click", async () => {
             title,
             category,
             summary,
-            createdAt: serverTimestamp() // ⚠️ 確保排序欄位存在
+            createdAt: serverTimestamp() // 比較準的時間
         });
 
         // 清空
@@ -71,14 +68,13 @@ document.getElementById("add_note_btn").addEventListener("click", async () => {
 });
 
 
-// ============================
-// 📂 詳細面板
-// ============================
+
+// 詳細面板
 let unsubscribeChat = null;
 
-function openDetailPanel(id, data) {
+function openDetailPanel(id, data) { // 提供頁面格式 載入資料進來
     const panel = document.getElementById("detail_panel");
-    panel.classList.add("open");
+    panel.classList.add("open"); // 加入 open 類別 才會彈出來
 
     document.getElementById("detail_title").value = data.title || "";
     document.getElementById("detail_category").value = data.category || "";
@@ -86,7 +82,7 @@ function openDetailPanel(id, data) {
 
     panel.dataset.id = id;
 
-    // 🔥 先取消舊監聽
+    // 先取消舊監聽
     if (unsubscribeChat) unsubscribeChat();
 
     const chat_list = document.getElementById("chat_list");
@@ -115,7 +111,6 @@ function openDetailPanel(id, data) {
     });
 }
 
-
 document.getElementById("send_chat_btn").addEventListener("click", async () => {
     const panel = document.getElementById("detail_panel");
     const noteId = panel.dataset.id;
@@ -138,6 +133,14 @@ document.getElementById("send_chat_btn").addEventListener("click", async () => {
     }
 });
 
+// 再輸入時 按 enter 可以送出
+document.getElementById("chat_input")
+  .addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      document.getElementById("send_chat_btn").click();
+    }
+});
+
 // 關閉
 document.getElementById("close_btn").addEventListener("click", () => {
     document.getElementById("detail_panel").classList.remove("open");
@@ -145,9 +148,7 @@ document.getElementById("close_btn").addEventListener("click", () => {
     if (unsubscribeChat) unsubscribeChat();
 });
 
-// ============================
-// 💾 儲存修改
-// ============================
+// 儲存修改
 document.getElementById("save_btn").addEventListener("click", async () => {
     const panel = document.getElementById("detail_panel");
     const id = panel.dataset.id;
@@ -177,12 +178,10 @@ document.getElementById("save_btn").addEventListener("click", async () => {
 });
 
 
-// ============================
-// 🔥 即時監聽資料（修正版）
-// ============================
+// 即時監聽資料（修正版）
 const note_list = document.getElementById("note_list");
 
-// ⚠️ 改成 desc + 確保 createdAt 存在
+// 確保 createdAt 存在 新增的放在上面
 const q = query(
     collection(db, "notes"),
     orderBy("createdAt", "desc")
@@ -196,7 +195,6 @@ onSnapshot(
 
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
-
 
 
             const note = document.createElement("div");
@@ -214,37 +212,39 @@ onSnapshot(
             deleteBtn.style.borderRadius = "50%";
 
 
-            // ⚠️ 防止點刪除時觸發卡片點擊
+            // 防止點刪除時觸發卡片點擊
             deleteBtn.addEventListener("click", async (e) => {
-                e.stopPropagation();
+                e.stopPropagation(); // 阻止當前事件繼續進行捕捉
 
                 const confirmDelete = confirm("確定要刪除嗎？");
                 if (!confirmDelete) return;
 
                 try {
                     await deleteDoc(doc(db, "notes", docSnap.id));
+                    
                 } catch (error) {
                     console.error("刪除失敗:", error);
                     alert("刪除失敗");
                 }
             });
 
-            // 📦 內容
+
+            // 內容
             const content = document.createElement("div");
             content.textContent =
                 "標題 : " + (data.title || "") + '\n' +
                 "類別 : " + (data.category || "") + '\n' +
                 "摘要 : " + (data.summary || "");
 
-            // 👉 卡片設定 relative（讓按鈕定位）
+            // 卡片設定 relative（讓按鈕定位）
             note.style.position = "relative";
 
-            // 👉 點擊卡片（開編輯）
+            // 點擊卡片（開編輯）
             note.addEventListener("click", () => {
                 openDetailPanel(docSnap.id, docSnap.data());
             });
 
-            // 👉 組裝
+            // 組裝
             note.appendChild(deleteBtn);
             note.appendChild(content);
 
