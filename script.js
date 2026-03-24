@@ -201,7 +201,8 @@ onSnapshot(
             note.classList.add("note");
             note.dataset.id = docSnap.id;
 
-            // 🗑️ 刪除按鈕
+            // 刪除按鈕
+            /*
             const deleteBtn = document.createElement("button");
             deleteBtn.textContent = "🗑️";
             deleteBtn.style.position = "absolute";
@@ -210,6 +211,10 @@ onSnapshot(
             deleteBtn.style.fontSize = "14px";
             deleteBtn.style.padding = "5px 8px";
             deleteBtn.style.borderRadius = "50%";
+            */
+            const deleteBtn = document.createElement("button");
+            deleteBtn.classList.add("delete-btn");
+            deleteBtn.textContent = "✕";
 
 
             // 防止點刪除時觸發卡片點擊
@@ -237,7 +242,7 @@ onSnapshot(
                 "摘要 : " + (data.summary || "");
 
             // 卡片設定 relative（讓按鈕定位）
-            note.style.position = "relative";
+            //note.style.position = "relative";
 
             // 點擊卡片（開編輯）
             note.addEventListener("click", () => {
